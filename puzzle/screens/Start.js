@@ -1,6 +1,11 @@
-import { StyleSheet } from "react-native";
+import { Animated, StyleSheet, View } from "react-native";
 import PropTypes from "prop-types";
 import React from "react";
+import Logo from "../components/Logo";
+import Toggle from "../components/Toggle";
+import sleep from "../utils/sleep";
+import configureTransition from "../utils/configureTransition";
+import Button from "../components/Button";
 
 const State = {
   Launching: "Launching",
@@ -21,8 +26,71 @@ export default class Start extends React.Component {
     transitionState: State.Launching,
   };
 
+  toggleOpacity = new Animated.Value(0);
+  buttonOpacity = new Animated.Value(0);
+
+  async componentDidMount() {
+    await sleep(500);
+
+    await configureTransition(() => {
+      this.setState({ transitionState: State.WillTransitionIn });
+    });
+
+    Animated.timing(this.toggleOpacity, {
+      toValue: 1,
+      duration: 500,
+      delay: 500,
+      useNativeDriver: true,
+    }).start();
+
+    Animated.timing(this.buttonOpacity, {
+      toValue: 1,
+      duration: 500,
+      delay: 1000,
+      useNativeDriver: true,
+    }).start();
+  }
+
+  handlePressStart = async () => {
+    const { onStartGame } = this.props;
+
+    await configureTransition(() => {
+      this.setState({
+        transitionState: State.WillTransitionOut,
+      });
+    });
+    onStartGame();
+  };
+
   render() {
-    return null;
+    const { size, onChangeSize } = this.props;
+    const { transitionState } = this.state;
+    const toggleStyle = { opacity: this.toggleOpacity };
+    const buttonStyle = { opacity: this.buttonOpacity };
+
+    return (
+      transitionState !== State.WillTransitionOut && (
+        <View style={styles.container}>
+          <View style={styles.logo}>
+            <Logo />
+          </View>
+          {transitionState !== State.Launching && (
+            <Animated.View style={toggleStyle}>
+              <Toggle
+                onChange={onChangeSize}
+                options={BOARD_SIZES}
+                value={size}
+              />
+            </Animated.View>
+          )}
+          {transitionState !== State.Launching && (
+            <Animated.View style={buttonStyle}>
+              <Button title={"Start Game"} onPress={this.handlePressStart} />
+            </Animated.View>
+          )}
+        </View>
+      )
+    );
   }
 }
 

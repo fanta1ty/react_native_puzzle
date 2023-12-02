@@ -29,14 +29,14 @@ export default class App extends React.Component {
     image: null,
   };
 
-  componentDidMount() {
-    this.preloadNextImage();
+  async componentDidMount() {
+    await this.preloadNextImage();
   }
 
   async preloadNextImage() {
     const image = await getRandomImage();
 
-    Image.prefetch(image.uri);
+    await Image.prefetch(image.uri);
 
     this.setState({
       image,
